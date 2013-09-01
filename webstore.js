@@ -19,7 +19,21 @@ WebStore.prototype.set = function (obj) {
     request.send (form);
 }
 
-WebStore.prototype.get = function (cb) {
+WebStore.prototype.get = function (cb, param) {
+
+    var querystring = "";
+    if (param != undefined) {
+        for (key in param) {
+            var value = param [key];
+            if (value instanceof Array) {
+                for (var i = 0; i < value.length; i++) {
+                    querystring += String (key) + "=" + String (value [i]);
+                }
+            } else if (value instanceof String) {
+                querystring += String (key) + "=" + value;
+            }
+        }
+    }
 
     var request = new XMLHttpRequest ();
 
@@ -29,6 +43,6 @@ WebStore.prototype.get = function (cb) {
         var data = JSON.parse (this.responseText);
         cb (data);
     };
-    request.open ("GET", this.url + "/get");
+    request.open ("GET", this.url + "/get?" + querystring);
     request.send ();
 }
