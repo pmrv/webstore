@@ -24,13 +24,14 @@ WebStore.prototype.get = function (cb, param) {
     var querystring = "";
     if (param != undefined) {
         for (key in param) {
+            var enkey = encodeURI (key);
             var value = param [key];
             if (value instanceof Array) {
                 for (var i = 0; i < value.length; i++) {
-                    querystring += String (key) + "=" + String (value [i]);
+                    querystring += enkey + "=" + encodeURI (String (value [i]));
                 }
             } else if (value instanceof String) {
-                querystring += String (key) + "=" + value;
+                querystring += enkey + "=" + encodeURI (value);
             }
         }
     }
