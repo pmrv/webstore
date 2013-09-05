@@ -11,9 +11,22 @@ WebStore.prototype.set = function (obj) {
     var request = new XMLHttpRequest ();
     var form    = new FormData ();
 
+    var payload = JSON.stringify (obj);
     form.append (
-        "json", JSON.stringify (obj)
+        "json", payload
     );
+
+    request.onreadystatechange = function () {
+        if (this.readyState < 4 || this.status == 200) {
+            return;
+        }
+
+        console.log (
+            "ERROR " + this.status + " on \n" +
+             payload + "\nResponse text is\n" +          
+             this.responseText
+        )
+    };
 
     request.open ("POST", this.url + "/set");
     request.send (form);
@@ -40,6 +53,12 @@ WebStore.prototype.get = function (cb, param) {
 
     request.onreadystatechange = function () {
         if (this.readyState < 4) return;
+
+        if (this.status != 200) {
+            console.log ("ERROR " + this.status + " on " + "/get?" + querystring);
+            console.log (this.responseText);
+            return;
+        }
 
         var data = JSON.parse (this.responseText);
         cb (data);

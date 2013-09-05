@@ -19,15 +19,22 @@ class WebStore:
         i.e. the full url is then {app_mount_point}/{uuid}/{[sg]et_path}
         """
 
-        self.paths = {
+        # delegates handling of a path to a function
+        self.paths = { 
             get_path: self.get_skeleton, 
             set_path: self.set_skeleton,
         }
 
-        self.errors = {
-            BadRequest: "400 Bad Request",
-            TempError:  "307 Temporary Redirect"
-        }
+        # delegates handling of an error to a function
+        # an error handler is called with the caught
+        # exception: handler (e)
+        # and is expected to return a three tupel
+        # (status, headers, body)
+        self.errors = [
+            (Exception,  self.fail),
+            (BadRequest, self.fail_badrequest),
+            (TempError,  self.fail_temp),
+        ]
 
     def get (self, params):
         """
@@ -39,7 +46,7 @@ class WebStore:
 
     def get_skeleton (self):
 
-        answer = self.get (self.environ.get ("QUERY_STRING") or {})
+        answer = self.get (parse_qs (self.environ.get ("QUERY_STRING", "")))
         if isinstance (answer, dict):
             answer = json.dumps (answer)
         elif not isinstance (answer, str):
@@ -80,7 +87,7 @@ class WebStore:
 
         return self.answer ("200 OK", [], "")
 
-    def init (self, uuid):
+    def init (self):
         """
         Placeholder, define this in your subclass.
         Values returned by this function are ignored.
@@ -109,26 +116,46 @@ class WebStore:
         self.headers_cb (status, headers);
         return [body.encode ("utf-8") if not isinstance (body, bytes) else body]
 
+    def fail (self, e):
+
+        status = "500 Internal Server Error"
+        header = []
+
+        return status, header, str (e)
+
+    def fail_badrequest (self, e):
+
+        status = "400 Bad Request"
+        header = []
+
+        return status, header, "\n".join (e.args)
+
+    def fail_temp (self, e):
+
+        status = "307 Temporary Redirect"
+        header = []
+
+        header = [
+            ("Location", "/".join ( (self.environ ["SCRIPT_NAME"], self.environ ["PATH_INFO"]) ))
+        ]
+
+        return status, header, ""
+
     def __call__ (self, environ, headers_cb):
 
         self.environ    = environ
         self.headers_cb = headers_cb
 
         try:
-            self.init (shift_path_info (environ))
-            return self.paths [shift_path_info (environ)] ()
+            self.uuid = shift_path_info (environ)
+            self.init ()
+            path = shift_path_info (environ)
+            return self.paths [path] ()
+
         except Exception as e:
-            if len (e.args) > 0:
-                body = str (e)
+            for error, handler in self.errors [-1::-1]:
+                if isinstance (e, error):
+                    return self.answer (*handler (e))
             else:
-                body = ""
-            
-            status = self.errors.get (e.__class__, "500 Internal Server Error")
-            header = []
-
-            if e.__class__ == TempError:
-                header.append (
-                    ("Location", "/".join ( (self.environ ["SCRIPT_NAME"], self.environ ["PATH_INFO"]) ))
-                )
-
-            return self.answer (status, header, body)
+                # if the Exception is not handled we raise it again
+                raise e from None 
