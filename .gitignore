@@ -1,3 +1,6 @@
 *.sw*
 *tag*
+build
+dist
+*egg*
 __pycache__

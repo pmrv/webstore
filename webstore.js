@@ -13,7 +13,7 @@ WebStore.prototype.set = function (obj) {
 
     var payload = JSON.stringify (obj);
     form.append (
-        "json", payload
+        "payload", payload
     );
 
     request.onreadystatechange = function () {
