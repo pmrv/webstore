@@ -28,12 +28,15 @@ class WebStore:
         # delegates handling of an error to a function
         # an error handler is called with the caught
         # exception: handler (e)
-        # and is expected to return a three tupel
+        # and is expected to return a three tuple
         # (status, headers, body)
         self.errors = [
-            (Exception,  self.fail),
             (BadRequest, self.fail_badrequest),
             (TempError,  self.fail_temp),
+            # since ∀ subclasses S of C: isinstance (S (), C) == True
+            # the next tuple will catch all Exceptions,
+            # remove it from the list, if you don't want that
+            (Exception,  self.fail), 
         ]
 
     def get (self, params):
@@ -81,7 +84,7 @@ class WebStore:
             raise BadRequest ()
 
         form = cgi.FieldStorage (fp = self.environ ['wsgi.input'], environ = self.environ)
-        input_dict = json.loads (form.getvalue ("json"))
+        input_dict = json.loads (form.getvalue ("payload"))
 
         self.set (input_dict)
 
@@ -128,7 +131,7 @@ class WebStore:
         status = "400 Bad Request"
         header = []
 
-        return status, header, "\n".join (e.args)
+        return status, header, "\n".join (map (str, e.args))
 
     def fail_temp (self, e):
 
@@ -143,7 +146,7 @@ class WebStore:
 
     def __call__ (self, environ, headers_cb):
 
-        self.environ    = environ
+        self.environ    = environ.copy ()
         self.headers_cb = headers_cb
 
         try:
@@ -153,7 +156,7 @@ class WebStore:
             return self.paths [path] ()
 
         except Exception as e:
-            for error, handler in self.errors [-1::-1]:
+            for error, handler in self.errors:
                 if isinstance (e, error):
                     return self.answer (*handler (e))
             else:
