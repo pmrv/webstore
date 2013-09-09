@@ -22,8 +22,8 @@ WebStore.prototype.set = function (obj) {
         }
 
         console.log (
-            "ERROR " + this.status + " on \n" +
-             payload + "\nResponse text is\n" +          
+            "error " + this.status + " on:\n" +
+            payload + "\nResponse text is:\n" +          
              this.responseText
         )
     };
@@ -60,7 +60,7 @@ WebStore.prototype.get = function (cb, param) {
             return;
         }
 
-        var data = JSON.parse (this.responseText);
+        var data = JSON.parse (this.responseText || "{}");
         cb (data);
     };
     request.open ("GET", this.url + "/get?" + querystring);

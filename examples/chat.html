@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <title>Stupid chat</title>
+    <script src="webstore.js" type="text/javascript"></script>
+</head>
+<body>
+    <div id="chatwindow"></div>
+    <input type="text"  id="textfield" style="width: 100%" />
+
+    <script type="text/javascript">
+
+while (! username) {
+    var username = prompt ("Choose a username!");
+}
+
+var store = new WebStore ("chatstore", "channel42");
+function post () {
+    var msg = document.getElementById ("textfield").value;
+    store.set ({'message': username + ": " + msg + "\n"});
+    document.getElementById ("textfield").value = "";
+}
+function refresh () {
+    store.get (function (data) {
+        var history = data ['history'];
+        document.getElementById ("chatwindow")
+                .innerHTML = "<pre>" + history + "</pre>";
+    });
+}
+
+setInterval (refresh, 1000);
+document.getElementById ("textfield")
+        .addEventListener ("keypress", function (e) {
+            
+    if (e.which == 13) {
+        post ();
+        e.stopPropagation ()
+        e.preventDefault ()
+    }
+});
+
+    </script>
+</body>

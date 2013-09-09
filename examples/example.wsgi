@@ -4,7 +4,7 @@
 
 import json
 import os, os.path
-from webstore import WebStore, TempError
+from webstore import WebStore, TempError, BadRequest
 
 
 class JSONStore (WebStore):
