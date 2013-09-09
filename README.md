@@ -2,6 +2,7 @@ webstore
 ========
 
 (Very) Simple framework for WSGI Apps providing a way to store JSON data on server. Comes with JS bindings.
+This is a toy project to play a bit around with web technology, you probably don't want to use it.
 
 Use Cases
 ---------
@@ -71,7 +72,7 @@ Also, if you read the source, you'll notice that you can easily add new URL
 paths to WebStore, simply by adding them to the `WebStore.paths` dict. 
 
 ### TL;DR ###
-Function:  
+Functions:  
   1. `WebStore.init (self) -> None`   
   Init data for the request
   2. `WebStore.quit (self) -> None`  

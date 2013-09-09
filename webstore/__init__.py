@@ -52,7 +52,7 @@ class WebStore:
         answer = self.get (parse_qs (self.environ.get ("QUERY_STRING", "")))
         if isinstance (answer, dict):
             answer = json.dumps (answer)
-        elif not isinstance (answer, str):
+        elif not isinstance (answer, (str, bytes)):
             raise ValueError (
                 "Internal getter returned invalid data."
             )
