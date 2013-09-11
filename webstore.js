@@ -28,7 +28,7 @@ WebStore.prototype.set = function (obj) {
         )
     };
 
-    request.open ("POST", this.url + "/set");
+    request.open ("POST", this.url);
     request.send (form);
 }
 
@@ -63,6 +63,6 @@ WebStore.prototype.get = function (cb, param) {
         var data = JSON.parse (this.responseText || "{}");
         cb (data);
     };
-    request.open ("GET", this.url + "/get?" + querystring);
+    request.open ("GET", this.url + querystring);
     request.send ();
 }

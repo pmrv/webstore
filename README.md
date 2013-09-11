@@ -1,8 +1,9 @@
 webstore
 ========
 
-(Very) Simple framework for WSGI Apps providing a way to store JSON data on server. Comes with JS bindings.
-This is a toy project to play a bit around with web technology, you probably don't want to use it.
+(Very) Simple framework for WSGI Apps providing a way to communicate JSON data to a server. Comes with JS bindings.
+This is a toy project to play a bit around with web technology, you probably don't want to use it (unless you're
+toying around yourself).
 
 Use Cases
 ---------
@@ -17,8 +18,8 @@ Installation should be as simple as `python setup install`.
 Usage
 -----
 In general the 'API' of a WebStore App looks like this
-`http://your.server/$wsgi_mount/$uuid/{get,set}` 
-People can GET data from the app via "get" and POST data to the app via "set" (Duhu). 
+`http://your.server/$wsgi_mount/$uuid` 
+Request data via GET and send some via POST. But that's not that important, webstore.js handles that for you.
 So what's that $uuid bit? Anything at all, as long as it is properly escaped.
 This is used to identify the store which is supposed be accessed.
 However, this is more of a suggestion than a rule. WebStore itself does not care about
@@ -38,16 +39,15 @@ The $uuid bit from before is available under `self.uuid`.
 Use this to tear them down again. Beware though, that it is not guaranteed that `WebStore.init` 
 ran successfully and completely when this is called.  
   3. `WebStore.get  (self, query_parameters: dict) -> (str, dict)`  
-Is invoked when (you guessed it) when a GET request for `/$wsgi_mount/$uuid/get` comes in. 
+Is invoked when (you guessed it) when a GET request for `/$wsgi_mount/$uuid` comes in. 
 If it came with a query string you'll get a dict of it as returned by `urllib.parse.parse_qs`. 
 Read its docs for details.  
   4. `WebStore.set  (self, payload: dict) -> None`  
-Invoked on POST request for `/$wsgi_mount/$uuid/set`. Any JSON submitted with the request 
+Invoked on POST request for `/$wsgi_mount/$uuid`. Any JSON submitted with the request 
 via the `payload` form field will be handed to you as the `payload` parameter as converted to a
 dict by `json.loads`. Read its docs for details.
 
-If you don't like the get/set paths, you can change them with `get_path`/`set_path` keyword arguments
-to `Webstore.__init__`. Read its doc string for details.  
+Of course, you can also override `__init__` as long as you call the orignal `__init__` from there.
 
 WebStore also comes with basic error handling facilities. If you raise errors in any of the above mentioned
 functions, they will get caught and `WebStore.errors` is searched for an error handler. `WebStore.errors`
@@ -72,17 +72,18 @@ Also, if you read the source, you'll notice that you can easily add new URL
 paths to WebStore, simply by adding them to the `WebStore.paths` dict. 
 
 ### TL;DR ###
-Functions:  
+#### Server ####
+Functions you can override:  
   1. `WebStore.init (self) -> None`   
   Init data for the request
   2. `WebStore.quit (self) -> None`  
   Clean it up again
-  3. `WebStore.get  (self, query_parameters: dict) -> (str, dict)`  
+  3. `WebStore.get  (self, query_parameters: dict) -> str || bytes || dict`  
   Return data to the client
   4. `WebStore.set  (self, payload: dict) -> None`  
   Get data from the client
 
-Attributes:  
+Attributes considered transparent:  
   1. `WebStore.uuid`  
   str, think of it as a session key  
   2. `WebStore.environ`  
@@ -90,5 +91,14 @@ Attributes:
   3. `WebStore.errors`  
   proplist, defines exception handlers and their priority
 
-For more info read the source and the example. It's only ~100 LLOC and all hooks and attributes
+For more info read the source and the examples. It's only ~100 LLOC and all hooks and attributes
 have comments.
+
+#### Client ####
+Create a new WebStore object, pass it the _relative_ URL to your WebStore Server application and the uuid we talked about earlier.  
+```javascript
+var store = new WebStore (relative_url, uuid)
+```
+Get data with `store.get (callback, {"additional" = "parameters"})`, the last argument is optional. The callback is 
+called with the json recieved from the server as sole argument. Send something with `store.set (obj)` where `obj` is
+a arbitary javascript object.

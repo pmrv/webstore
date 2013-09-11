@@ -23,10 +23,10 @@ class JSONStore (WebStore):
         else:
             raise BadRequest ("Store {} does not exist.".format (self.uuid))
 
-    def get (self, _):
+    def give (self, _):
         return self.data.read ()
 
-    def set (self, input_dict):
+    def take (self, input_dict):
 
         try: 
             lockpath = os.path.join (self.data_dir, self.uuid + ".lck")

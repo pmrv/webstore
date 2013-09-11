@@ -20,13 +20,13 @@ class Chat (WebStore):
             self.data.close ()
             self.data = None
 
-    def get (self, _):
+    def give (self, _):
 
         self.data.seek (0)
         hist = self.data.read ()
         return {"history": hist}
 
-    def set (self, input_data):
+    def take (self, input_data):
 
         msg = input_data.get ("message", "")
         self.data.write (msg)

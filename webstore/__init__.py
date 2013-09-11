@@ -11,18 +11,11 @@ class TempError  (Exception): pass
 
 class WebStore:
 
-    def __init__ (self, get_path = "get", set_path = "set"):
-        """
-        set_path -- str, under which relative url the set functionality is reachable
-        get_path -- str, analogous to set_path, both cannot have '/' in them
+    def __init__ (self):
 
-        i.e. the full url is then {app_mount_point}/{uuid}/{[sg]et_path}
-        """
-
-        # delegates handling of a path to a function
-        self.paths = { 
-            get_path: self.get_skeleton, 
-            set_path: self.set_skeleton,
+        self.verbs = {
+            "GET":  self.get,
+            "POST": self.post
         }
 
         # delegates handling of an error to a function
@@ -39,17 +32,18 @@ class WebStore:
             (Exception,  self.fail), 
         ]
 
-    def get (self, params):
+    def give (self, params):
         """
         Placeholder, define this in your subclass.
         Returns answer as dict or string.
+        Called on GET requests.
         params -- dict, parameters from the query string
         """
         pass
 
-    def get_skeleton (self):
+    def get (self):
 
-        answer = self.get (parse_qs (self.environ.get ("QUERY_STRING", "")))
+        answer = self.give (parse_qs (self.environ.get ("QUERY_STRING", "")))
         if isinstance (answer, dict):
             answer = json.dumps (answer)
         elif not isinstance (answer, (str, bytes)):
@@ -62,31 +56,28 @@ class WebStore:
         )
         return self.answer (
             "200 OK", 
-            [("Content-Type", "application/json; charset/utf-8"),
+            [
+             ("Content-Type", "application/json; charset/utf-8"),
              ("Content-Encoding", "gzip"),
-             ], 
+            ], 
             data)
 
-    def set (self, input_dict):
+    def take (self, input_dict):
         """
         Placeholder, define this in your subclass.
         Values returned by this function are ignored.
-        If something goes wrong during processing your
-        input, raise an Exception.
+        Called on POST requests.
         input_dict -- dict, decoded json as submitted 
                             with the request
         """
         pass
 
-    def set_skeleton (self):
-
-        if self.environ ['REQUEST_METHOD'] != "POST":
-            raise BadRequest ()
+    def post (self):
 
         form = cgi.FieldStorage (fp = self.environ ['wsgi.input'], environ = self.environ)
         input_dict = json.loads (form.getvalue ("payload"))
 
-        self.set (input_dict)
+        self.take (input_dict)
 
         return self.answer ("200 OK", [], "")
 
@@ -152,8 +143,8 @@ class WebStore:
         try:
             self.uuid = shift_path_info (environ)
             self.init ()
-            path = shift_path_info (environ)
-            return self.paths [path] ()
+            meth = environ ['REQUEST_METHOD']
+            return self.verbs [meth] ()
 
         except Exception as e:
             for error, handler in self.errors:
