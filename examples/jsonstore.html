@@ -9,7 +9,7 @@
 <body>
 <pre id="container"></pre>
 <script type="text/javascript">
-    var store = new WebStore ("store", "42");
+    var store = new WebStore ("jsonstore", "42");
     function update () {
         store.get (function (data) {
             var cont = document.getElementById ("container");

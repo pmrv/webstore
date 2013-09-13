@@ -53,4 +53,4 @@ class JSONStore (WebStore):
         if self.data:
             self.data.close ()
 
-application = JSONStore ("data")
+application = JSONStore ("/var/www/lab/data")
