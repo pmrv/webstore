@@ -38,11 +38,11 @@ The $uuid bit from before is available under `self.uuid`.
   2. `WebStore.quit (self) -> None`  
 Use this to tear them down again. Beware though, that it is not guaranteed that `WebStore.init` 
 ran successfully and completely when this is called.  
-  3. `WebStore.get  (self, query_parameters: dict) -> (str, dict)`  
+  3. `WebStore.give  (self, query_parameters: dict) -> (str, dict)`  
 Is invoked when (you guessed it) when a GET request for `/$wsgi_mount/$uuid` comes in. 
 If it came with a query string you'll get a dict of it as returned by `urllib.parse.parse_qs`. 
 Read its docs for details.  
-  4. `WebStore.set  (self, payload: dict) -> None`  
+  4. `WebStore.take  (self, payload: dict) -> None`  
 Invoked on POST request for `/$wsgi_mount/$uuid`. Any JSON submitted with the request 
 via the `payload` form field will be handed to you as the `payload` parameter as converted to a
 dict by `json.loads`. Read its docs for details.
@@ -78,9 +78,9 @@ Functions you can override:
   Init data for the request
   2. `WebStore.quit (self) -> None`  
   Clean it up again
-  3. `WebStore.get  (self, query_parameters: dict) -> str || bytes || dict`  
+  3. `WebStore.give  (self, query_parameters: dict) -> str || bytes || dict`  
   Return data to the client
-  4. `WebStore.set  (self, payload: dict) -> None`  
+  4. `WebStore.take  (self, payload: dict) -> None`  
   Get data from the client
 
 Attributes considered transparent:  
